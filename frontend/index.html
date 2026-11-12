@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>จำแนกสัตว์หิมพานต์</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #2b2118;
+      --maroon: #7a1f2b;
+      --maroon-deep: #4e121b;
+      --gold: #c6a15b;
+      --gold-soft: #e7d3a1;
+      --ivory: #f7f1e6;
+      --paper: #fffaf3;
+      --line: rgba(122, 31, 43, 0.16);
+      --shadow: 0 16px 40px rgba(78, 18, 27, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--ink);
+      font-family: "Sarabun", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(198, 161, 91, 0.28), transparent 42%),
+        linear-gradient(180deg, #fbf6ee 0%, var(--ivory) 40%, #efe4d2 100%);
+      padding: 0;
+    }
+
+    .wrap {
+      width: min(1100px, calc(100% - 32px));
+      margin: 16px auto;
+      flex: 1 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    #vanta-bg {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 240px;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    header {
+      text-align: center;
+      width: 100%;
+      margin: 0;
+      padding: 32px clamp(16px, 16vw, 280px) 26px;
+      border-radius: 0;
+      background:
+        linear-gradient(160deg, var(--maroon) 0%, var(--maroon-deep) 72%);
+      color: #fff8ec;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border: 1px solid rgba(231, 211, 161, 0.55);
+      border-radius: 16px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .barges {
+      position: absolute;
+      inset: 10px;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .barge {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: auto;
+      max-width: 46%;
+      object-fit: contain;
+      object-position: right bottom;
+    }
+
+    .barge-left {
+      left: 0;
+      transform: scaleX(-1);
+    }
+
+    .barge-right {
+      right: 0;
+    }
+
+    header > :not(.barges) {
+      position: relative;
+      z-index: 1;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    .kicker {
+      margin: 0 0 6px;
+      letter-spacing: 0.28em;
+      font-size: 0.78rem;
+      color: var(--gold-soft);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Noto Serif Thai", serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .lead {
+      max-width: 38rem;
+      margin: 10px auto 0;
+      color: rgba(255, 248, 236, 0.88);
+      line-height: 1.6;
+    }
+
+    .crests {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      list-style: none;
+      padding: 0;
+      margin: 18px auto 0;
+      max-width: 860px;
+    }
+
+    .crests li {
+      border: 1px solid rgba(231, 211, 161, 0.45);
+      border-radius: 999px;
+      min-width: 0;
+      padding: 6px 8px;
+      font-size: 0.92rem;
+      overflow-wrap: anywhere;
+      background: rgba(255, 250, 243, 0.08);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-family: "Noto Serif Thai", serif;
+      font-size: 1.25rem;
+      color: var(--maroon);
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #1b1410;
+      border: 1px solid var(--line);
+    }
+
+    .stage video,
+    .stage canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #1b1410;
+    }
+
+    #canvas28 { display: none !important; }
+
+    .actions, .file-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button, .file-btn {
+      appearance: none;
+      border: 1px solid var(--maroon);
+      background: transparent;
+      color: var(--maroon);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 999px;
+      padding: 10px 16px;
+      cursor: pointer;
+      flex: 1 1 120px;
+    }
+
+    button.primary, .file-btn {
+      background: linear-gradient(180deg, #d7b56a, var(--gold));
+      color: var(--maroon-deep);
+      border-color: #a7843d;
+    }
+
+    button:active, .file-btn:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.6; cursor: wait; }
+
+    #btnFlip { display: none; }
+
+    @media (max-width: 980px), (pointer: coarse) {
+      #btnFlip { display: inline-flex; align-items: center; justify-content: center; }
+    }
+
+    .file-btn { text-align: center; display: inline-flex; align-items: center; justify-content: center; }
+
+    input[type="file"] { display: none; }
+
+    .muted {
+      color: #6d5c4e;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin: 10px 0 0;
+    }
+
+    #result {
+      min-height: 140px;
+      border-radius: 16px;
+      padding: 14px;
+      background: #fbf6ee;
+      border: 1px dashed rgba(122, 31, 43, 0.28);
+    }
+
+    .empty { margin: 0; color: #6d5c4e; }
+
+    .pred-name {
+      margin: 0;
+      font-family: "Noto Serif Thai", serif;
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
+      color: var(--maroon-deep);
+    }
+
+    .bars { list-style: none; padding: 0; margin: 14px 0 0; }
+    .bars li { margin-top: 10px; }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .track {
+      height: 10px;
+      border-radius: 999px;
+      background: #efe4d2;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--maroon), var(--gold));
+    }
+
+    #health { margin-bottom: 0; }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      margin-top: auto;
+      padding: 18px 0 calc(18px + env(safe-area-inset-bottom));
+      border-radius: 0;
+      text-align: center;
+      color: #fff8ec;
+      background: linear-gradient(160deg, var(--maroon) 0%, var(--maroon-deep) 72%);
+      box-shadow: var(--shadow);
+    }
+
+    .footer-ornament {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .footer-copy {
+      flex: 0 1 auto;
+      max-width: min(720px, 72%);
+      padding: 0 2px;
+    }
+
+    .ornament {
+      flex: 1 1 0;
+      min-width: 28px;
+      height: 48px;
+      position: relative;
+      overflow: hidden;
+      background: url("assets/ornament.png") left center / auto 48px no-repeat;
+    }
+
+    .ornament::after {
+      content: "";
+      position: absolute;
+      left: 246px;
+      right: 0;
+      top: 18px;
+      height: 2px;
+      background: #d8b316;
+    }
+
+    .ornament-right { transform: scaleX(-1); }
+
+    footer p { margin: 0; line-height: 1.6; }
+
+    footer .mark {
+      font-family: "Noto Serif Thai", serif;
+      font-size: 1.15rem;
+    }
+
+    footer .fine {
+      margin-top: 4px;
+      color: var(--gold-soft);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .crests { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .barge { opacity: 0.42; }
+      .barge-left { transform: scale(1.2) scaleX(-1); }
+      .barge-right { transform: scale(1.2); }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: calc(100% - 20px); }
+      header { padding: 22px 12px 16px; }
+      .barges { inset: 8px; }
+      .barge { opacity: 0.34; height: 92%; max-width: 46%; }
+      .barge-left { transform: scaleX(-1); }
+      .barge-right { transform: none; }
+      button, .file-btn { flex-basis: 100%; min-height: 46px; }
+      .crests { grid-template-columns: 1fr 1fr; }
+      footer .fine { font-size: 0.82rem; }
+    }
+
+    @media (max-width: 420px) {
+      header { padding: 16px 10px 14px; }
+      header::after { inset: 6px; }
+      .barges { inset: 6px; }
+      .barge { opacity: 0.28; height: 78%; max-width: 42%; }
+      .kicker { letter-spacing: 0.12em; font-size: 0.7rem; }
+      h1 { font-size: 1.35rem; }
+      .lead { font-size: 0.9rem; }
+      .crests { grid-template-columns: 1fr; gap: 6px; margin-top: 12px; }
+      .crests li { font-size: 0.84rem; }
+      .wrap { width: calc(100% - 12px); }
+      .panel { padding: 12px; }
+      .ornament { height: 34px; background-size: auto 34px; }
+      .ornament::after { left: 174px; top: 13px; }
+      .footer-copy { max-width: 78%; }
+      footer .fine { font-size: 0.75rem; overflow-wrap: anywhere; }
+    }
+  </style>
+</head>
+<body>
+  <div id="vanta-bg" aria-hidden="true"></div>
+  <header>
+    <div class="barges" aria-hidden="true">
+      <img class="barge barge-left" alt="" src="assets/barge.png" />
+      <img class="barge barge-right" alt="" src="assets/barge.png" />
+    </div>
+    <p class="kicker">หิมพานต์</p>
+    <h1>จำแนกสัตว์หิมพานต์</h1>
+    <p class="lead">ถ่ายภาพหรือเลือกไฟล์ แล้วให้โมเดลบอกว่าเป็นสัตว์ตัวใดในเจ็ดตระกูล</p>
+    <ul class="crests">
+      <li>พญานาค</li>
+      <li>นกหัสดีลิงค์</li>
+      <li>ครุฑ</li>
+      <li>กินรี</li>
+      <li>คชสีห์</li>
+      <li>ช้างเอราวัณ</li>
+      <li>สิงห์</li>
+    </ul>
+  </header>
+
+  <div class="wrap">
+    <main class="layout">
+      <section class="panel">
+        <h2>กล้อง</h2>
+        <div class="stage">
+          <video id="video" autoplay playsinline></video>
+        </div>
+        <div class="actions">
+          <button type="button" id="btnStart">เปิดกล้อง</button>
+          <button type="button" id="btnFlip">สลับกล้อง</button>
+          <button type="button" class="primary" id="btnSnap">ถ่ายภาพ</button>
+        </div>
+        <p class="muted">บนมือถือบางรุ่น กล้องใช้ได้ผ่านการเลือกไฟล์ด้านล่าง</p>
+        <div class="file-row">
+          <label class="file-btn" for="fileInput">อัปโหลดภาพ</label>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" capture="environment" />
+      </section>
+
+      <section class="panel">
+        <h2>ภาพที่จะส่ง</h2>
+        <div class="stage">
+          <canvas id="canvasPreview" width="280" height="280"></canvas>
+        </div>
+        <canvas id="canvas28" width="28" height="28" hidden></canvas>
+        <div class="actions">
+          <button type="button" class="primary" id="btnPredict">ทำนาย</button>
+        </div>
+        <p class="muted">ภาพตัวอย่างถูกย่อเป็น 28×28 ก่อนส่งเข้าโมเดล</p>
+      </section>
+
+      <section class="panel">
+        <h2>ผลลัพธ์</h2>
+        <div id="result">
+          <p class="empty">ยังไม่มีผลลัพธ์ เปิดกล้องหรืออัปโหลดภาพก่อน แล้วกดทำนาย</p>
+        </div>
+        <p class="muted" id="health">โมเดลพร้อมแล้ว อัปโหลดหรือถ่ายภาพ แล้วกดทำนาย</p>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <div class="footer-ornament">
+      <span class="ornament ornament-left" aria-hidden="true"></span>
+      <div class="footer-copy">
+        <p class="mark">ป่าหิมพานต์</p>
+        <p class="fine">พญานาค · นกหัสดีลิงค์ · ครุฑ · กินรี · คชสีห์ · ช้างเอราวัณ · สิงห์</p>
+      </div>
+      <span class="ornament ornament-right" aria-hidden="true"></span>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.birds.min.js"></script>
+  <script>
+    const Streamlit = {
+      RENDER_EVENT: "streamlit:render",
+      events: document,
+      setComponentReady() {
+        window.parent.postMessage({
+          isStreamlitMessage: true,
+          type: "streamlit:componentReady",
+          apiVersion: 1
+        }, "*");
+      },
+      setFrameHeight(height) {
+        window.parent.postMessage({
+          isStreamlitMessage: true,
+          type: "streamlit:setFrameHeight",
+          height: height
+        }, "*");
+      },
+      setComponentValue(value) {
+        window.parent.postMessage({
+          isStreamlitMessage: true,
+          type: "streamlit:setComponentValue",
+          value: value,
+          dataType: "json"
+        }, "*");
+      }
+    };
+
+    window.addEventListener("message", (event) => {
+      const data = event.data || {};
+      if (!data.isStreamlitMessage || data.type !== "streamlit:render") return;
+      document.dispatchEvent(new CustomEvent("streamlit:render", { detail: data }));
+    });
+
+    const sky = document.getElementById("vanta-bg");
+    const pageHeader = document.querySelector("header");
+    const narrow = window.matchMedia("(max-width: 640px)").matches;
+    let vantaEffect = null;
+
+    try {
+      vantaEffect = VANTA.BIRDS({
+        el: "#vanta-bg",
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.0,
+        minWidth: 200.0,
+        scale: 1.0,
+        scaleMobile: 1.0,
+        backgroundColor: 0xf7f1e6,
+        color1: 0x7a1f2b,
+        color2: 0xc6a15b,
+        colorMode: "lerp",
+        birdSize: narrow ? 1.0 : 1.3,
+        wingSpan: narrow ? 16.0 : 22.0,
+        separation: 100.0
+      });
+    } catch (err) {
+      vantaEffect = null;
+    }
+
+    let birdResizeQueued = false;
+
+    function keepBirdsBelowHeader() {
+      if (!sky || !pageHeader) return;
+      const headerBottom = pageHeader.getBoundingClientRect().bottom;
+      sky.style.top = Math.max(0, headerBottom) + "px";
+      if (birdResizeQueued || !vantaEffect || typeof vantaEffect.resize !== "function") return;
+      birdResizeQueued = true;
+      requestAnimationFrame(() => {
+        birdResizeQueued = false;
+        vantaEffect.resize();
+      });
+    }
+
+    function fitFrame() {
+      keepBirdsBelowHeader();
+      const height = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      Streamlit.setFrameHeight(height);
+    }
+
+    keepBirdsBelowHeader();
+    window.addEventListener("resize", fitFrame);
+    window.addEventListener("scroll", keepBirdsBelowHeader, { passive: true });
+
+    const NAMES = ["พญานาค", "นกหัสดีลิงค์", "ครุฑ", "กินรี", "คชสีห์", "ช้างเอราวัณ", "สิงห์"];
+    const video = document.getElementById("video");
+    const btnStart = document.getElementById("btnStart");
+    const btnFlip = document.getElementById("btnFlip");
+    const btnSnap = document.getElementById("btnSnap");
+    const fileInput = document.getElementById("fileInput");
+    const canvasPreview = document.getElementById("canvasPreview");
+    const ctxPreview = canvasPreview.getContext("2d");
+    const canvas28 = document.getElementById("canvas28");
+    const ctx28 = canvas28.getContext("2d");
+    const btnPredict = document.getElementById("btnPredict");
+    const resultEl = document.getElementById("result");
+    const healthEl = document.getElementById("health");
+
+    let stream = null;
+    let hasImage = false;
+    let facingMode = "environment";
+    let shownKey = "";
+
+    async function openCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("เบราว์เซอร์นี้ไม่เปิดกล้องในหน้านี้ ให้ใช้อัปโหลดภาพ");
+      }
+      if (stream) stream.getTracks().forEach((track) => track.stop());
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: facingMode } },
+        audio: false
+      });
+      video.srcObject = stream;
+      video.style.transform = facingMode === "user" ? "scaleX(-1)" : "";
+    }
+
+    function drawCover(source, sw, sh) {
+      const w = canvasPreview.width;
+      const h = canvasPreview.height;
+      const scale = Math.max(w / sw, h / sh);
+      const nw = sw * scale;
+      const nh = sh * scale;
+      const dx = (w - nw) / 2;
+      const dy = (h - nh) / 2;
+      ctxPreview.clearRect(0, 0, w, h);
+      ctxPreview.drawImage(source, dx, dy, nw, nh);
+      ctx28.clearRect(0, 0, 28, 28);
+      ctx28.drawImage(canvasPreview, 0, 0, 28, 28);
+      hasImage = true;
+    }
+
+    btnStart.onclick = async () => {
+      try {
+        await openCamera();
+      } catch (err) {
+        alert("เปิดกล้องไม่ได้: " + err);
+      }
+    };
+
+    btnFlip.onclick = async () => {
+      facingMode = facingMode === "environment" ? "user" : "environment";
+      btnFlip.textContent = facingMode === "user" ? "กล้องหน้า" : "กล้องหลัง";
+      if (!stream) return;
+      try {
+        await openCamera();
+      } catch (err) {
+        alert("สลับกล้องไม่ได้: " + err);
+      }
+    };
+
+    btnSnap.onclick = () => {
+      if (!video.srcObject || !video.videoWidth) {
+        alert("ยังไม่เปิดกล้อง");
+        return;
+      }
+      drawCover(video, video.videoWidth, video.videoHeight);
+    };
+
+    fileInput.onchange = (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        drawCover(img, img.width, img.height);
+        URL.revokeObjectURL(img.src);
+      };
+      img.src = URL.createObjectURL(file);
+    };
+
+    function labelOf(pred) {
+      if (typeof pred === "number" || /^\d+$/.test(String(pred))) {
+        const index = Number(pred);
+        return NAMES[index] || String(pred);
+      }
+      return String(pred);
+    }
+
+    function normalizeProbs(probs) {
+      if (!probs) return [];
+      if (Array.isArray(probs)) {
+        const row = Array.isArray(probs[0]) ? probs[0] : probs;
+        return row.map((value, index) => ({
+          name: NAMES[index] || String(index),
+          value: Number(value)
+        }));
+      }
+      return Object.keys(probs).map((name) => ({
+        name: name,
+        value: Number(probs[name])
+      }));
+    }
+
+    function renderResult(pred, probs) {
+      const items = normalizeProbs(probs);
+      const bars = items.map((item) => {
+        const pct = Math.max(0, Math.min(100, item.value * 100));
+        return (
+          "<li>" +
+            "<div class=\"bar-label\"><span>" + item.name + "</span><span>" + pct.toFixed(1) + "%</span></div>" +
+            "<div class=\"track\"><div class=\"fill\" style=\"width:" + pct.toFixed(1) + "%\"></div></div>" +
+          "</li>"
+        );
+      }).join("");
+      resultEl.innerHTML =
+        "<p class=\"pred-name\">" + labelOf(pred) + "</p>" +
+        (bars ? "<ul class=\"bars\">" + bars + "</ul>" : "");
+    }
+
+    btnPredict.onclick = () => {
+      if (!hasImage) {
+        alert("ยังไม่มีภาพ ให้ถ่ายหรืออัปโหลดก่อน");
+        return;
+      }
+      const photo = canvasPreview.toDataURL("image/jpeg", 0.92);
+      resultEl.innerHTML = "<p class=\"empty\">กำลังส่งภาพไปทำนาย...</p>";
+      btnPredict.disabled = true;
+      Streamlit.setComponentValue({ image: photo, nonce: Date.now() });
+    };
+
+    document.addEventListener("streamlit:render", (event) => {
+      const args = (event.detail && event.detail.args) || {};
+      if (args.health) healthEl.textContent = args.health;
+      const result = args.result;
+      if (result && result.key && result.key !== shownKey) {
+        shownKey = result.key;
+        btnPredict.disabled = false;
+        if (result.error) {
+          resultEl.textContent = result.error;
+        } else {
+          renderResult(result.predicted_class, result.probs);
+        }
+      }
+      fitFrame();
+    });
+
+    Streamlit.setComponentReady();
+    window.addEventListener("load", fitFrame);
+    setTimeout(fitFrame, 400);
+    setTimeout(fitFrame, 1200);
+  </script>
+</body>
+</html>

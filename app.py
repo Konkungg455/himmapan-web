@@ -1,10 +1,7 @@
-"""เว็บทำนายสัตว์หิมพานต์ สำหรับ Streamlit Community Cloud (ฟรี)
+"""เว็บจำแนกสัตว์หิมพานต์ ใช้ดีไซน์เดียวกับหน้า Apps Script"""
 
-วางไฟล์ himmapan_cnn.weights.h5 ไว้โฟลเดอร์เดียวกับไฟล์นี้
-ไฟล์นั้นอยู่ใน Google Drive:
-งาน final_project_image_261_352/himmapan_cnn.weights.h5
-"""
-
+import base64
+import io
 import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -14,6 +11,7 @@ os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
 
 import numpy as np
 import streamlit as st
+import streamlit.components.v1 as components
 import tensorflow as tf
 from PIL import Image
 
@@ -27,7 +25,12 @@ CLASS_NAMES = [
     "สิงห์",
 ]
 IMG_SIZE = (224, 224)
-WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), "himmapan_cnn.weights.h5")
+ROOT = os.path.dirname(__file__)
+WEIGHTS_PATH = os.path.join(ROOT, "himmapan_cnn.weights.h5")
+himmapan_ui = components.declare_component(
+    "himmapan_ui",
+    path=os.path.join(ROOT, "frontend"),
+)
 
 
 def make_backbone():
@@ -63,41 +66,85 @@ def load_model():
     return model
 
 
-def predict(image):
-    resized = image.convert("RGB").resize(IMG_SIZE)
+def predict_data_url(data_url):
+    encoded = data_url.split(",", 1)[1] if "," in data_url else data_url
+    image = Image.open(io.BytesIO(base64.b64decode(encoded))).convert("RGB")
+    resized = image.resize(IMG_SIZE)
     batch = np.expand_dims(np.asarray(resized, dtype=np.float32), axis=0)
     probabilities = load_model().predict(batch, verbose=0)[0]
-    return probabilities
+    best = int(np.argmax(probabilities))
+    return {
+        "predicted_class": CLASS_NAMES[best],
+        "probs": {
+            name: float(value)
+            for name, value in zip(CLASS_NAMES, probabilities)
+        },
+    }
 
 
-st.set_page_config(page_title="จำสัตว์หิมพานต์", page_icon="🐲")
-st.title("จำสัตว์หิมพานต์")
-st.caption("พญานาค · นกหัสดีลิงค์ · ครุฑ · กินรี · คชสีห์ · ช้างเอราวัณ · สิงห์")
+st.set_page_config(
+    page_title="จำแนกสัตว์หิมพานต์",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+st.markdown(
+    """
+    <style>
+      #MainMenu, [data-testid="stHeader"], [data-testid="stToolbar"],
+      [data-testid="stDecoration"] { display: none !important; }
+      .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+        background: #f7f1e6;
+      }
+      .block-container, [data-testid="stMainBlockContainer"] {
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      iframe { width: 100% !important; border: 0; }
+      footer { visibility: hidden; height: 0; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-if not os.path.isfile(WEIGHTS_PATH):
-    st.error(
-        "ยังไม่มีไฟล์ himmapan_cnn.weights.h5 ในโฟลเดอร์นี้ "
-        "ดาวน์โหลดจาก Google Drive โฟลเดอร์ งาน final_project_image_261_352 แล้ววางคู่กับ app.py"
-    )
-    st.stop()
+if "result" not in st.session_state:
+    st.session_state.result = None
+if "seen_nonce" not in st.session_state:
+    st.session_state.seen_nonce = None
 
-uploaded = st.file_uploader("อัปโหลดภาพ", type=["jpg", "jpeg", "png", "webp", "bmp"])
-if uploaded is None:
-    st.info("เลือกรูปสัตว์หิมพานต์ แล้วเว็บจะบอกว่าเป็นตัวไหน")
-    st.stop()
+weights_ready = os.path.isfile(WEIGHTS_PATH)
+if not weights_ready and st.session_state.result is None:
+    st.session_state.result = {
+        "error": "ยังไม่มีไฟล์ himmapan_cnn.weights.h5",
+        "key": "missing-weights",
+    }
 
-image = Image.open(uploaded)
-st.image(image, caption=uploaded.name, width=360)
+health = (
+    "โมเดลพร้อมแล้ว อัปโหลดหรือถ่ายภาพ แล้วกดทำนาย"
+    if weights_ready
+    else "ยังไม่มีไฟล์น้ำหนักโมเดลบนเซิร์ฟเวอร์"
+)
 
-with st.spinner("กำลังทำนาย"):
-    probabilities = predict(image)
+event = himmapan_ui(
+    result=st.session_state.result,
+    health=health,
+    default=None,
+    key="himmapan",
+)
 
-best = int(np.argmax(probabilities))
-st.subheader(f"ผลทำนาย: {CLASS_NAMES[best]}")
-st.write(f"ความมั่นใจ {probabilities[best] * 100:.2f}%")
-
-for index in np.argsort(probabilities)[::-1]:
-    name = CLASS_NAMES[int(index)]
-    percent = float(probabilities[index]) * 100
-    st.write(f"{name} {percent:.2f}%")
-    st.progress(min(1.0, percent / 100))
+if (
+    weights_ready
+    and isinstance(event, dict)
+    and event.get("image")
+    and event.get("nonce") != st.session_state.seen_nonce
+):
+    st.session_state.seen_nonce = event["nonce"]
+    try:
+        result = predict_data_url(event["image"])
+        result["key"] = str(event["nonce"])
+        st.session_state.result = result
+    except Exception as exc:
+        st.session_state.result = {
+            "error": "ทำนายไม่สำเร็จ: " + str(exc),
+            "key": str(event["nonce"]),
+        }
+    st.rerun()
